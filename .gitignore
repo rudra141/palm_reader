@@ -52,3 +52,6 @@ next-env.d.ts
 
 # sentry
 .sentryclirc
+
+# raw source assets (re-encode outputs land in /public/scroll-story/)
+asset/

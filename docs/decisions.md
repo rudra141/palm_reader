@@ -267,3 +267,46 @@ Quality gates verified clean at scaffold time:
 **Decision:** Update Stop hook to `pnpm vitest --run --passWithNoTests` (calls vitest binary directly, bypassing pnpm's flag parser). Also gate the entire hook on `[ -d node_modules ]` so it doesn't fail before `pnpm install` runs.
 **Rationale:** Both quality-gate runs (typecheck + tests) need to actually work for the hook to be useful.
 **Consequences:** None — purely a fix.
+
+---
+
+## 2026-04-29 — Scroll-story asset pipeline (CP2 reference imagery decision)
+
+**Context:** User delivered a Veo-generated 8 s, 24 fps, 1280×720 H.264 MP4 (`asset/Whisk_*.mp4`, 4.2 MB) plus 240 ezgif-extracted JPGs. Watermark "Veo" in bottom-right of every frame must be removed (decision Q1 → option b). Phase 3 (CP2) needs a scroll-tied video pipeline that supports frame-perfect scrub on mobile Safari + low-bandwidth desktop.
+
+**Decision: All-intra H.264 video, served as the canonical scroll-story asset.**
+
+Pipeline (executed at scaffold time; lives in `/scripts/encode-scroll-story.sh` for re-runs):
+
+1. Source: `asset/Whisk_*.mp4` (192 frames; 240 ezgif JPGs were duplicates).
+2. Watermark removal: `delogo=x=1150:y=645:w=128:h=70` — content-aware fill from surrounding pixels. Verified clean on first/last frames.
+3. Re-encode all-intra (`-g 1 -keyint_min 1 -sc_threshold 0 -bf 0`) so every frame is a self-decodable I-frame → frame-perfect `currentTime` scrub on every browser including Safari.
+4. Two output variants:
+   - `public/scroll-story/story-720p.mp4` — 1280×720, CRF 23, 6.6 MB (desktop / large viewports)
+   - `public/scroll-story/story-480p.mp4` — 854×480, CRF 24, 3.2 MB (mobile)
+5. Poster: `public/scroll-story/story-poster.jpg` — frame 1 still, 79 KB. Used as `<video poster>`, fallback for reduced-motion + low-power, and OG image base.
+6. Audio dropped (`-an`) — scroll story is silent at v1.
+
+**Why all-intra over delta-encoded H.264:**
+Naïve `<video>` + `video.currentTime = scrollProgress` is keyframe-bound; backward scrub stutters, mobile Safari has 50–200 ms paint lag. All-intra makes every frame a keyframe → frame-perfect seek; pair with `requestVideoFrameCallback` in the player for refresh-rate-locked sync. Only cost is ~3× bandwidth vs. delta-encoded video — acceptable on lazy-loaded chunk after page interactive.
+
+**Why not the JPG image-sequence path:**
+240 JPGs × 27 KB = 6.5 MB anyway; 240 HTTP requests; CPU image decode on main thread. All-intra video gives equivalent scrub fidelity, hardware-accelerated decode, single request.
+
+**Tooling:** `ffmpeg-static` + `ffprobe-static` added as dev deps so the encode is reproducible without a system ffmpeg install.
+
+**Visual identity:** Per Q2 (decision option a) the lifestyle aesthetic is **distinctly Indian** for v1 (temple terrace, dhoti-kurta figure, Sanskrit-coded landscape). Beats map approximately:
+
+- Beat 1 (frames 1–~50) — sculptural hand close-up with gold-glow lines
+- Beat 2 (~50–~90) — portal zoom into the lines
+- Beat 2→3 transition (~90–~110) — gold light burst with mountains emerging
+- Beat 3 (~110–~170) — landscape with palm tree at golden hour
+- Beat 3/4 (~170–~240) — practitioner figure on temple terrace at sunset
+
+Chinese-tradition users see the Indian visual at landing; logged risk to revisit at v1.1 for a parallel Chinese visual track.
+
+**Consequences:**
+
+- Phase 3 (CP2) hero renders Beat 1 from `story-720p.mp4` — full video file shipped; player only renders frames 0 → ~1.6 s for Beat 1.
+- Phase 7 (full scroll story) wires all 4 beats to scroll progress using the same single video file.
+- `asset/` (raw source) committed to repo as project property; future re-encodes use the script.

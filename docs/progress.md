@@ -24,12 +24,14 @@
 
 ## Phase 3 — Design System + 3D POC
 
-- [ ] Tokens implemented
-- [ ] All UI primitives
-- [ ] /design-system route renders
-- [ ] 3D scroll story POC (Beat 1 only)
-- [ ] /audit clean
-- [ ] **CP2 approved** ← user delivers reference frames for Beats 3-N here
+- [x] Tokens implemented (`app/globals.css` `@theme {}` block, full system per `/docs/design-system.md`)
+- [x] UI primitives v1: `Button` (+ `buttonStyles` helper), `Container`, `Eyebrow`, `Card` (more lifecycle primitives — Input/Select/Checkbox/Dialog — added on demand by section work)
+- [x] `/design-system` route renders all token galleries + primitive showcase
+- [x] 3D scroll story POC built (`/components/3d/Story.tsx` + `StoryLoader.tsx`); CP2 reference video re-encoded all-intra (`public/scroll-story/story-720p.mp4` 6.6 MB · `story-480p.mp4` 3.2 MB · `story-poster.jpg` 79 KB), Veo watermark removed via `delogo` filter, frame-perfect scroll-tied scrub via `requestAnimationFrame` + `video.currentTime`, reduced-motion + low-power fallbacks both render the static poster
+- [x] Hero section wires Beat 1 overlay (eyebrow + H1 + sub + CTA) over the scroll story on `/`
+- [x] Quality gates clean: typecheck, lint, build (First Load JS 107 KB / budget 200 KB), vitest (5 tests pass)
+- [ ] /audit clean (full perf/a11y/SEO/security audit run before requesting CP2)
+- [ ] **CP2 approved** ← user delivers reference frames for Beats 3-N here ✓ delivered (Veo-generated MP4)
 
 ## Phase 4 — AI Inference Pipeline
 
