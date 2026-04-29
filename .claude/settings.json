@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(pnpm *)",
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(git *)",
+      "Bash(node *)",
+      "Bash(mkdir *)",
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Bash(rg *)",
+      "Bash(find *)",
+      "WebFetch",
+      "WebSearch"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f package.json ]; then pnpm prettier --write \"$CLAUDE_FILE_PATHS\" 2>/dev/null || true; fi"
+          },
+          {
+            "type": "command",
+            "command": "if [ -f package.json ]; then pnpm eslint --fix \"$CLAUDE_FILE_PATHS\" 2>/dev/null || true; fi"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f package.json ] && [ -d node_modules ]; then echo '--- TYPECHECK ---'; pnpm tsc --noEmit || (echo 'TYPECHECK FAILED — fix before declaring done.' && exit 2); echo '--- TESTS ---'; pnpm vitest --run --passWithNoTests || (echo 'TESTS FAILED — fix before declaring done.' && exit 2); echo 'Quality gates passed.'; fi"
+          }
+        ]
+      }
+    ]
+  }
+}

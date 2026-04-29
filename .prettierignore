@@ -1,0 +1,11 @@
+node_modules
+.next
+.vercel
+out
+build
+dist
+playwright-report
+test-results
+evals/results
+pnpm-lock.yaml
+package-lock.json
