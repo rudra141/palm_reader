@@ -28,7 +28,7 @@ All tokens live in `/app/globals.css` as CSS custom properties on `:root`. Tailw
   /* Ink (text) */
   --color-ink: 28 24 22; /* near-black, warm-leaning */
   --color-ink-muted: 78 70 64;
-  --color-ink-faint: 130 122 116;
+  --color-ink-faint: 105 97 90; /* WCAG AA 4.5:1 against --color-bg */
   --color-ink-on-accent: 250 248 244;
 
   /* Accent — single, deliberate */

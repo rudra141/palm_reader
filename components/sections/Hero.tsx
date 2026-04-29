@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { buttonStyles } from '@/components/ui/Button';
 import { StoryLoader } from '@/components/3d/StoryLoader';
 
@@ -27,16 +28,22 @@ export function Hero() {
           reserves the same 300vh of scroll space the Story occupies → no CLS. */}
       <Suspense
         fallback={
-          <div
-            aria-hidden
-            style={{
-              height: '300vh',
-              backgroundImage: 'url(/scroll-story/story-poster.jpg)',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center top',
-              backgroundRepeat: 'no-repeat',
-            }}
-          />
+          <div aria-hidden style={{ height: '300vh', position: 'relative' }}>
+            {/* Poster as a real <Image priority> so the preload-scanner finds it
+                during HTML parse — keeps LCP fast on cold loads. Sticky-positioned
+                inside the 300vh sentinel so it occupies the first viewport. */}
+            <div className="sticky top-0 h-screen w-full overflow-hidden">
+              <Image
+                src="/scroll-story/story-poster.jpg"
+                alt=""
+                role="presentation"
+                fill
+                priority
+                sizes="100vw"
+                className="object-cover"
+              />
+            </div>
+          </div>
         }
       >
         <StoryLoader />

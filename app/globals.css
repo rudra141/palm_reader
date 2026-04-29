@@ -15,7 +15,9 @@
   /* ---------------- Ink (text) ---------------- */
   --color-ink: rgb(28 24 22);
   --color-ink-muted: rgb(78 70 64);
-  --color-ink-faint: rgb(130 122 116);
+  /* Darkened from rgb(130 122 116) (3.97:1) to clear WCAG AA 4.5:1 against --color-bg.
+     See /docs/audit-a11y-*.md. */
+  --color-ink-faint: rgb(105 97 90);
   --color-ink-on-accent: rgb(250 248 244);
 
   /* ---------------- Accent (single, deliberate) ---------------- */
