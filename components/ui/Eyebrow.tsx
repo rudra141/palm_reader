@@ -6,7 +6,7 @@ export function Eyebrow({ className, children, ...rest }: HTMLAttributes<HTMLPar
   return (
     <p
       className={cn(
-        'font-[var(--font-body)] tracking-[var(--tracking-extra-wide)] text-[var(--color-ink-faint)] text-[var(--text-sm)] uppercase',
+        'text-sm font-[var(--font-body)] tracking-[var(--tracking-extra-wide)] text-[var(--color-ink-faint)] uppercase',
         className,
       )}
       {...rest}

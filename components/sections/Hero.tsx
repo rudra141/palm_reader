@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { buttonStyles } from '@/components/ui/Button';
 import { StoryLoader } from '@/components/3d/StoryLoader';
@@ -21,7 +22,25 @@ import { StoryLoader } from '@/components/3d/StoryLoader';
 export function Hero() {
   return (
     <section className="relative" aria-labelledby="hero-heading">
-      <StoryLoader />
+      {/* Suspense boundary contains the next/dynamic({ssr:false}) bailout so the
+          overlay markup renders server-side and is paint-on-arrival. The fallback
+          reserves the same 300vh of scroll space the Story occupies → no CLS. */}
+      <Suspense
+        fallback={
+          <div
+            aria-hidden
+            style={{
+              height: '300vh',
+              backgroundImage: 'url(/scroll-story/story-poster.jpg)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center top',
+              backgroundRepeat: 'no-repeat',
+            }}
+          />
+        }
+      >
+        <StoryLoader />
+      </Suspense>
 
       {/* ---------- Anchored scrim ----------
           Soft dark gradient, biased to the bottom-left, that the type block sits on.
@@ -40,15 +59,14 @@ export function Hero() {
       />
 
       {/* ---------- Type block ----------
-          12-column grid lets the type sit cleanly in the left third on desktop while
-          centering the visual on the right. Mobile stacks bottom-biased to keep the
-          hand visible above. */}
+          12-column grid; type lives in the left half on tablet+, full-width on mobile.
+          Mobile bias bottom (thumb zone). Desktop center-vertical, generous left padding. */}
       <div className="pointer-events-none fixed inset-0 z-[var(--z-overlay)] flex items-end pb-[var(--space-9)] md:items-center md:pb-0">
-        <div className="mx-auto grid w-full max-w-[88rem] grid-cols-1 px-[var(--space-5)] md:grid-cols-12 md:px-[var(--space-7)] lg:px-[var(--space-8)]">
-          <div className="pointer-events-auto md:col-span-6 lg:col-span-5">
-            {/* Eyebrow — small caps, tracked extra-wide, accent-deep so it carries on cream */}
+        <div className="mx-auto grid w-full max-w-[88rem] grid-cols-1 px-[var(--space-5)] md:grid-cols-12 md:px-[var(--space-7)] lg:px-[var(--space-9)]">
+          <div className="pointer-events-auto md:col-span-7 lg:col-span-6">
+            {/* Eyebrow — small caps, tracked extra-wide, cream so it carries on the gold scrim */}
             <p
-              className="font-[var(--font-body)] tracking-[var(--tracking-extra-wide)] text-[var(--text-xs)] uppercase"
+              className="text-xs font-[var(--font-body)] tracking-[var(--tracking-extra-wide)] uppercase"
               style={{
                 color: 'rgb(255 248 234)',
                 textShadow: '0 1px 2px rgba(18,16,14,0.45)',
@@ -57,23 +75,28 @@ export function Hero() {
               Praxa
             </p>
 
-            {/* H1 — display, large, tight tracking + leading. Cream so it sits on the scrim
-                without needing a heavy backdrop. Drop shadow for absolute readability on
-                bright frames. */}
+            {/* H1 — Cormorant Garamond, 40 → 64 px clamp, normal weight for elegant
+                editorial feel. max-w-[19ch] forces a clean 2-line break:
+                  "A reading from the"
+                  "original texts."
+                Tight leading + slight negative tracking for premium display rhythm. */}
             <h1
               id="hero-heading"
-              className="mt-[var(--space-4)] leading-[var(--leading-tight)] font-[var(--font-display)] font-medium tracking-[var(--tracking-tight)] text-[var(--text-4xl)] md:text-[var(--text-5xl)]"
+              className="mt-[var(--space-3)] max-w-[19ch] font-[var(--font-display)] font-normal italic"
               style={{
+                fontSize: 'clamp(2.25rem, 5vw, 4rem)',
+                lineHeight: 1.06,
+                letterSpacing: '-0.02em',
                 color: 'rgb(252 248 240)',
-                textShadow: '0 2px 24px rgba(18,16,14,0.55), 0 1px 2px rgba(18,16,14,0.4)',
+                textShadow: '0 2px 24px rgba(18,16,14,0.5), 0 1px 2px rgba(18,16,14,0.35)',
               }}
             >
               A reading from the original texts.
             </h1>
 
-            {/* Sub — body comfort size, max 38ch for graceful reading rhythm */}
+            {/* Sub — 42ch reading rhythm; cream-muted so the H1 stays the focal note */}
             <p
-              className="mt-[var(--space-5)] max-w-[38ch] leading-[var(--leading-relaxed)] text-[var(--text-md)]"
+              className="text-md mt-[var(--space-5)] max-w-[42ch] leading-[var(--leading-relaxed)]"
               style={{
                 color: 'rgb(238 230 217)',
                 textShadow: '0 1px 12px rgba(18,16,14,0.55)',
@@ -84,7 +107,7 @@ export function Hero() {
             </p>
 
             {/* CTA cluster — primary pill + secondary text link */}
-            <div className="mt-[var(--space-7)] flex flex-wrap items-center gap-x-[var(--space-6)] gap-y-[var(--space-4)]">
+            <div className="mt-[var(--space-6)] flex flex-wrap items-center gap-x-[var(--space-6)] gap-y-[var(--space-4)] md:mt-[var(--space-7)]">
               <Link
                 href="/upload"
                 className={buttonStyles({
@@ -103,7 +126,7 @@ export function Hero() {
               </Link>
               <Link
                 href="/methodology"
-                className="tracking-[var(--tracking-wide)] text-[var(--text-sm)] underline decoration-[1px] underline-offset-[6px] transition-colors duration-[var(--duration-base)] hover:decoration-[2px]"
+                className="text-sm tracking-[var(--tracking-wide)] underline decoration-[1px] underline-offset-[6px] transition-colors duration-[var(--duration-base)] hover:decoration-[2px]"
                 style={{
                   color: 'rgb(238 230 217)',
                   textShadow: '0 1px 8px rgba(18,16,14,0.55)',
@@ -114,8 +137,8 @@ export function Hero() {
             </div>
           </div>
 
-          {/* Right column reserved for the visual — kept transparent so the hand reads. */}
-          <div aria-hidden className="hidden md:col-span-6 md:block lg:col-span-7" />
+          {/* Right column reserved for the visual — transparent so the hand stays unobstructed. */}
+          <div aria-hidden className="hidden md:col-span-5 md:block lg:col-span-6" />
         </div>
       </div>
 
@@ -123,7 +146,7 @@ export function Hero() {
           Tiny disclaimer line locked to bottom; legally required to be visible on
           every page (per /docs/content-plan.md) and reinforces the brand's restraint. */}
       <p
-        className="pointer-events-none fixed inset-x-0 bottom-[var(--space-4)] z-[var(--z-overlay)] mx-auto w-full max-w-[88rem] px-[var(--space-5)] text-center font-[var(--font-body)] tracking-[var(--tracking-wide)] text-[var(--text-xs)] md:px-[var(--space-7)] md:text-left lg:px-[var(--space-8)]"
+        className="pointer-events-none fixed inset-x-0 bottom-[var(--space-4)] z-[var(--z-overlay)] mx-auto w-full max-w-[88rem] px-[var(--space-5)] text-center text-xs font-[var(--font-body)] tracking-[var(--tracking-wide)] md:px-[var(--space-7)] md:text-left lg:px-[var(--space-8)]"
         style={{
           color: 'rgb(238 230 217 / 0.78)',
           textShadow: '0 1px 6px rgba(18,16,14,0.6)',

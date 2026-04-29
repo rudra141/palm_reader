@@ -58,12 +58,12 @@ export default function DesignSystemPage() {
       <Container size="lg">
         <Eyebrow>Praxa · internal</Eyebrow>
         <h1
-          className="mt-[var(--space-3)] leading-[var(--leading-tight)] font-[var(--font-display)] tracking-[var(--tracking-tight)] text-[var(--text-4xl)]"
+          className="mt-[var(--space-3)] text-4xl leading-[var(--leading-tight)] font-[var(--font-display)] tracking-[var(--tracking-tight)]"
           style={{ color: 'var(--color-ink)' }}
         >
           Design system.
         </h1>
-        <p className="mt-[var(--space-4)] max-w-[60ch] text-[var(--color-ink-muted)] text-[var(--text-md)]">
+        <p className="text-md mt-[var(--space-4)] max-w-[60ch] text-[var(--color-ink-muted)]">
           Live token gallery and primitive showcase. Every token traces to{' '}
           <Link className="underline" href="/">
             /docs/design-system.md
@@ -80,7 +80,7 @@ export default function DesignSystemPage() {
                   className="h-16 w-full rounded-[var(--radius-md)] border border-[var(--color-border)]"
                   style={{ background: `var(--color-${t})` }}
                 />
-                <p className="mt-[var(--space-2)] font-[var(--font-body)] tracking-[var(--tracking-wide)] text-[var(--color-ink-muted)] text-[var(--text-xs)]">
+                <p className="mt-[var(--space-2)] text-xs font-[var(--font-body)] tracking-[var(--tracking-wide)] text-[var(--color-ink-muted)]">
                   --color-{t}
                 </p>
               </Card>
@@ -107,9 +107,7 @@ export default function DesignSystemPage() {
                 >
                   A reading from the original texts.
                 </p>
-                <p className="mt-[var(--space-1)] text-[var(--color-ink-faint)] text-[var(--text-xs)]">
-                  {label}
-                </p>
+                <p className="mt-[var(--space-1)] text-xs text-[var(--color-ink-faint)]">{label}</p>
               </div>
             ))}
           </div>
@@ -120,14 +118,12 @@ export default function DesignSystemPage() {
           <div className="space-y-[var(--space-2)]">
             {SPACE_TOKENS.map(({ token, val }) => (
               <div key={token} className="flex items-center gap-[var(--space-4)]">
-                <code className="w-32 text-[var(--color-ink-muted)] text-[var(--text-xs)]">
-                  --{token}
-                </code>
+                <code className="w-32 text-xs text-[var(--color-ink-muted)]">--{token}</code>
                 <div
                   className="h-[var(--space-2)] rounded-[var(--radius-sm)] bg-[var(--color-accent)]"
                   style={{ width: `var(--${token})` }}
                 />
-                <span className="text-[var(--color-ink-faint)] text-[var(--text-xs)]">{val}</span>
+                <span className="text-xs text-[var(--color-ink-faint)]">{val}</span>
               </div>
             ))}
           </div>
@@ -160,7 +156,7 @@ export default function DesignSystemPage() {
           <div className="grid grid-cols-1 gap-[var(--space-5)] md:grid-cols-2">
             <Card variant="surface">
               <Eyebrow>From the source</Eyebrow>
-              <p className="mt-[var(--space-3)] leading-[var(--leading-snug)] font-[var(--font-display)] text-[var(--color-ink)] text-[var(--text-2xl)]">
+              <p className="mt-[var(--space-3)] text-2xl leading-[var(--leading-snug)] font-[var(--font-display)] text-[var(--color-ink)]">
                 Every claim traces back to a primary classical text.
               </p>
               <p className="mt-[var(--space-3)] text-[var(--color-ink-muted)]">
@@ -170,7 +166,7 @@ export default function DesignSystemPage() {
             </Card>
             <Card variant="inset">
               <Eyebrow>A practitioner&apos;s voice</Eyebrow>
-              <p className="mt-[var(--space-3)] leading-[var(--leading-snug)] font-[var(--font-display)] text-[var(--color-ink)] text-[var(--text-2xl)]">
+              <p className="mt-[var(--space-3)] text-2xl leading-[var(--leading-snug)] font-[var(--font-display)] text-[var(--color-ink)]">
                 Decisive. Confident. Twenty years of study in every sentence.
               </p>
             </Card>
@@ -208,7 +204,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <section className="mt-[var(--space-9)]">
       <h2
-        className="mb-[var(--space-5)] font-[var(--font-display)] tracking-[var(--tracking-tight)] text-[var(--text-2xl)]"
+        className="mb-[var(--space-5)] text-2xl font-[var(--font-display)] tracking-[var(--tracking-tight)]"
         style={{ color: 'var(--color-ink)' }}
       >
         {title}
