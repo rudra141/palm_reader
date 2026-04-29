@@ -35,9 +35,11 @@
   --color-border: rgb(226 220 210);
   --color-border-strong: rgb(200 192 180);
 
-  /* ---------------- Type ---------------- */
-  --font-display: 'Cormorant Garamond', 'Hoefler Text', Georgia, serif;
-  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* ---------------- Type ----------------
+     next/font in /app/layout.tsx declares --font-display-loaded and
+     --font-body-loaded; we compose them with platform fallbacks here. */
+  --font-display: var(--font-display-loaded), 'Hoefler Text', Georgia, serif;
+  --font-body: var(--font-body-loaded), system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;

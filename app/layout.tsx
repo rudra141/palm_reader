@@ -1,5 +1,20 @@
 import type { Metadata, Viewport } from 'next';
+import { Cormorant_Garamond, Inter } from 'next/font/google';
 import './globals.css';
+
+const cormorant = Cormorant_Garamond({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  variable: '--font-display-loaded',
+  display: 'swap',
+});
+
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  variable: '--font-body-loaded',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: {
@@ -14,6 +29,7 @@ export const metadata: Metadata = {
     title: 'Praxa',
     description: 'Palm readings from the original texts.',
     siteName: 'Praxa',
+    images: [{ url: '/scroll-story/story-poster.jpg', width: 1280, height: 720 }],
   },
   robots: { index: true, follow: true },
 };
@@ -29,7 +45,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${cormorant.variable} ${inter.variable}`}>
       <body>{children}</body>
     </html>
   );
