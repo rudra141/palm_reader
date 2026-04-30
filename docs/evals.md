@@ -20,3 +20,20 @@ Format:
 ```
 
 ---
+
+## 2026-04-29T19:19:15.250Z — fixture-only run
+
+**Test set size:** 2
+**Pass rate:** 100% (2/2)
+**Unsafe outputs:** 0
+**Avg citation density:** 100%
+**Latency / cost:** n/a (no model calls)
+**Notes:** scored against 2 hand-curated cases (no live inference).
+
+## 2026-04-30T04:29:09.617Z — fixture-only run
+**Test set size:** 2
+**Pass rate:** 100% (2/2)
+**Unsafe outputs:** 0
+**Avg citation density:** 100%
+**Latency / cost:** n/a (no model calls)
+**Notes:** scored against 2 hand-curated cases (no live inference).
