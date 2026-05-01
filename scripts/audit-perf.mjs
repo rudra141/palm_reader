@@ -17,6 +17,26 @@ const chrome = await chromeLauncher.launch({
   chromeFlags: ['--headless=new', '--disable-gpu', '--no-sandbox'],
 });
 
+// Throttling presets — desktop should NOT use mobile's slow-4G + 4x CPU,
+// otherwise scores collapse on dense pages even when timings are healthy.
+// Values mirror Lighthouse's built-in desktop preset.
+const MOBILE_THROTTLING = {
+  rttMs: 150,
+  throughputKbps: 1638.4,
+  requestLatencyMs: 562.5,
+  downloadThroughputKbps: 1474.56,
+  uploadThroughputKbps: 675,
+  cpuSlowdownMultiplier: 4,
+};
+const DESKTOP_THROTTLING = {
+  rttMs: 40,
+  throughputKbps: 10240,
+  requestLatencyMs: 0,
+  downloadThroughputKbps: 0,
+  uploadThroughputKbps: 0,
+  cpuSlowdownMultiplier: 1,
+};
+
 async function run(url, formFactor) {
   const opts = {
     logLevel: 'error',
@@ -24,6 +44,7 @@ async function run(url, formFactor) {
     onlyCategories: ['performance', 'accessibility', 'best-practices', 'seo'],
     port: chrome.port,
     formFactor,
+    throttling: formFactor === 'mobile' ? MOBILE_THROTTLING : DESKTOP_THROTTLING,
     screenEmulation:
       formFactor === 'mobile'
         ? { mobile: true, width: 412, height: 823, deviceScaleFactor: 1.75, disabled: false }
