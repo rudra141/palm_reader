@@ -9,7 +9,13 @@ import AxeBuilder from '@axe-core/playwright';
 import { writeFileSync, mkdirSync } from 'node:fs';
 
 const BASE = process.env.URL ?? 'http://localhost:3000';
-const ROUTES = ['/', '/design-system'];
+const ROUTES = [
+  '/',
+  '/design-system',
+  '/upload',
+  '/report/sample-indian',
+  '/report/sample-chinese',
+];
 
 mkdirSync('docs', { recursive: true });
 

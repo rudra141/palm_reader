@@ -9,7 +9,7 @@ import * as chromeLauncher from 'chrome-launcher';
 import { writeFileSync, mkdirSync } from 'node:fs';
 
 const BASE = process.env.URL ?? 'http://localhost:3000';
-const ROUTES = ['/', '/design-system'];
+const ROUTES = ['/', '/design-system', '/upload', '/report/sample-indian'];
 
 mkdirSync('docs', { recursive: true });
 
