@@ -49,6 +49,7 @@ export const ClientContextSchema = z.object({
 
 export const AnalyzeRequestSchema = z.object({
   imageId: z.string().min(8),
+  blobUrl: z.string().url(),
   clientContext: ClientContextSchema,
   tradition: z.enum(['indian', 'chinese']),
   subStyle: z.enum(SUB_STYLE_IDS),

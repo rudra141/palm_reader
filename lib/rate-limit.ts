@@ -58,9 +58,14 @@ export async function checkRateLimit(
   config: LimitConfig,
   identifier: string,
 ): Promise<{ success: boolean; remaining: number; reset: number }> {
+  // Dev-mode bypass: local iteration would otherwise burn through the prod
+  // limits in minutes. Only honored when NODE_ENV !== 'production'.
+  if (process.env.NODE_ENV !== 'production') {
+    return { success: true, remaining: Infinity, reset: 0 };
+  }
   const r = getRedis();
   if (!r) {
-    // Dev / preview without Upstash — bypass the limiter explicitly.
+    // Preview without Upstash — bypass the limiter explicitly.
     return { success: true, remaining: Infinity, reset: 0 };
   }
   const limiter = new Ratelimit({

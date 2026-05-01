@@ -40,6 +40,7 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
   const parsed = AnalyzeRequestSchema.safeParse(body);
   if (!parsed.success) {
+    console.error('[analyze] invalid_input', JSON.stringify(parsed.error.issues, null, 2));
     return NextResponse.json(
       { error: 'invalid_input', issues: parsed.error.issues },
       { status: 400 },
@@ -72,15 +73,8 @@ export async function POST(req: Request) {
 
   // ── Fetch the uploaded blob bytes ──────────────────────────────────────
   // Phase 4 ships with a synchronous fetch from the public blob URL the upload
-  // endpoint returned. The Phase-4 client passes the URL through; persistence
-  // also stores it for the 24h delete cron.
-  const blobUrl = (input as unknown as { blobUrl?: string }).blobUrl;
-  if (!blobUrl) {
-    return NextResponse.json(
-      { error: 'blob_url_missing', detail: 'Pass blobUrl from /api/upload response.' },
-      { status: 400 },
-    );
-  }
+  // endpoint returned. The schema validates blobUrl so we trust it here.
+  const blobUrl = input.blobUrl;
   const blobResp = await fetch(blobUrl);
   if (!blobResp.ok) {
     return NextResponse.json({ error: 'blob_fetch_failed' }, { status: 502 });

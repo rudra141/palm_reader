@@ -104,3 +104,21 @@ export const VisionObservationSchema = z.discriminatedUnion('valid_palm_image', 
 ]);
 
 export type VisionObservation = z.infer<typeof VisionObservationSchema>;
+
+/**
+ * Looser schema used by the small-model vision pass (Llama 4 Scout 17B).
+ * Free-text description; the reasoning model interprets it. Lets us avoid
+ * forcing a 17B model through a 100+-field structured output.
+ */
+export const SimpleVisionSchema = z.discriminatedUnion('valid_palm_image', [
+  z.object({
+    valid_palm_image: z.literal(false),
+    reason: z.string().min(1),
+  }),
+  z.object({
+    valid_palm_image: z.literal(true),
+    description: z.string().min(40),
+  }),
+]);
+
+export type SimpleVisionResult = z.infer<typeof SimpleVisionSchema>;

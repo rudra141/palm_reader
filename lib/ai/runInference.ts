@@ -1,11 +1,18 @@
-// Inference orchestrator — vision → reasoning → filter → return.
-// Used by /app/api/analyze. Persistence + cost recording is the route's job.
+// Inference orchestrator (RAG + 2-call mode).
+//
+// Pipeline:
+//   A. visionPass    — Llama 4 Scout (multimodal) → VisionObservation JSON
+//   B. reasoningPass — Llama 3.3 70B Versatile (text, RAG-augmented) → Report
+//   C. regex-only filter — regexScanReport. No LLM judge call (saves quota).
+//
+// Persistence + cost recording is the route's job.
 
 import { runVisionPass } from './visionPass';
 import { runReasoningPass } from './reasoningPass';
-import { runOutputFilter } from './outputFilter';
+import { regexScanReport } from '@/lib/validation/filterSchema';
 import type { ClientContext, SubStyleId } from '@/lib/validation/inputSchemas';
 import type { Report } from '@/lib/validation/reportSchema';
+import { PROMPT_IDS } from './prompts';
 
 export interface InferenceInput {
   imageBytes: Uint8Array;
@@ -78,14 +85,14 @@ export async function runInference(input: InferenceInput): Promise<InferenceResu
     };
   }
 
-  // ── Step C: Output filter ───────────────────────────────────────────────
-  const filterResult = await runOutputFilter(reasoningResult.report);
-  if (filterResult.verdict.verdict === 'filter') {
+  // ── Step C: Regex-only filter ───────────────────────────────────────────
+  const regexHits = regexScanReport(reasoningResult.report);
+  if (regexHits.length > 0) {
     return {
       ok: false,
       reason: 'filter_rejected',
-      detail: filterResult.verdict.notes || filterResult.verdict.blocking_failures.join(','),
-      partialCostUsd: visionResult.costUsd + reasoningResult.costUsd + filterResult.costUsd,
+      detail: `regex pre-pass fired: ${regexHits.join(', ')}`,
+      partialCostUsd: visionResult.costUsd + reasoningResult.costUsd,
     };
   }
 
@@ -101,7 +108,7 @@ export async function runInference(input: InferenceInput): Promise<InferenceResu
       prompt_versions: {
         vision_observe: visionResult.promptVersion,
         report_render: reasoningResult.promptVersion,
-        output_filter_judge: filterResult.promptVersion,
+        output_filter_judge: PROMPT_IDS.output_filter_judge.version,
       },
       generated_at: new Date().toISOString(),
     },
@@ -114,11 +121,11 @@ export async function runInference(input: InferenceInput): Promise<InferenceResu
       models: {
         vision: visionResult.model,
         reasoning: reasoningResult.model,
-        filter: filterResult.model,
+        filter: 'regex',
       },
       promptVersions: report.meta.prompt_versions,
-      totalCostUsd: visionResult.costUsd + reasoningResult.costUsd + filterResult.costUsd,
-      totalLatencyMs: visionResult.latencyMs + reasoningResult.latencyMs + filterResult.latencyMs,
+      totalCostUsd: visionResult.costUsd + reasoningResult.costUsd,
+      totalLatencyMs: visionResult.latencyMs + reasoningResult.latencyMs,
     },
   };
 }

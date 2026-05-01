@@ -84,6 +84,16 @@ export async function recordSpend(args: { userKey: string; costUsd: number }): P
 
 /** Per-token costs (USD per 1M tokens). Mirrors /docs/trd.md §3 model table. */
 export const MODEL_PRICING: Record<string, { input: number; output: number }> = {
+  // primary (Groq — Llama 4 Scout multimodal + 3.1 8B Instant; free tier).
+  // Paid tier prices per console.groq.com — refresh when finalising for v1.1.
+  'meta-llama/llama-4-scout-17b-16e-instruct': { input: 0.11, output: 0.34 },
+  'llama-3.1-8b-instant': { input: 0.05, output: 0.08 },
+  // fallback wiring
+  'gemini-2.0-flash': { input: 0.1, output: 0.4 },
+  'gemini-2.0-flash-lite': { input: 0.075, output: 0.3 },
+  'gemini-2.5-pro': { input: 1.25, output: 5.0 },
+  'gemini-2.5-flash': { input: 0.075, output: 0.3 },
+  // retained / fallback wiring
   'claude-sonnet-4-6': { input: 3.0, output: 15.0 },
   'claude-opus-4-7': { input: 15.0, output: 75.0 },
   'claude-haiku-4-5-20251001': { input: 0.8, output: 4.0 },

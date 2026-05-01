@@ -43,7 +43,9 @@ export function UploadForm() {
   const [gender, setGender] = useState<'' | 'male' | 'female' | 'nonbinary' | 'prefer_not_to_say'>(
     '',
   );
-  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [dobYear, setDobYear] = useState('');
+  const [dobMonth, setDobMonth] = useState('');
+  const [dobDay, setDobDay] = useState('');
   const [retentionOptIn, setRetentionOptIn] = useState(false);
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
   const [status, setStatus] = useState<Status>({ kind: 'idle' });
@@ -114,7 +116,11 @@ export function UploadForm() {
             dominantHand,
             ...(name.trim() ? { name: name.trim() } : {}),
             ...(gender ? { gender } : {}),
-            ...(dateOfBirth ? { dateOfBirth } : {}),
+            ...(dobYear && dobMonth && dobDay
+              ? {
+                  dateOfBirth: `${dobYear}-${dobMonth.padStart(2, '0')}-${dobDay.padStart(2, '0')}`,
+                }
+              : {}),
           },
           disclaimerAccepted: true,
           retentionOptIn,
@@ -157,6 +163,7 @@ export function UploadForm() {
             ref={fileInputRef}
             type="file"
             accept={ACCEPTED.join(',')}
+            aria-label="Choose a palm photograph to upload"
             className="sr-only"
             onChange={(e) => onFileChosen(e.target.files?.[0] ?? null)}
           />
@@ -239,18 +246,92 @@ export function UploadForm() {
             </select>
           </label>
 
-          <label className="block">
-            <span className={fieldLabel} style={fieldLabelStyle}>
+          <fieldset className="block sm:col-span-2">
+            <legend className={fieldLabel} style={fieldLabelStyle}>
               Date of birth <span className="tracking-normal lowercase">(optional, 16+)</span>
-            </span>
-            <input
-              type="date"
-              value={dateOfBirth}
-              onChange={(e) => setDateOfBirth(e.target.value)}
-              className={inputClass}
-              style={inputStyle}
-            />
-          </label>
+            </legend>
+            <div className="mt-[var(--space-2)] grid grid-cols-3 gap-[var(--space-3)]">
+              <label className="block">
+                <span className="sr-only">Day</span>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  max={31}
+                  step={1}
+                  placeholder="DD"
+                  list="dob-days"
+                  value={dobDay}
+                  onChange={(e) => setDobDay(e.target.value.replace(/\D/g, '').slice(0, 2))}
+                  className={inputClass}
+                  style={inputStyle}
+                  aria-label="Day"
+                />
+                <datalist id="dob-days">
+                  {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+                    <option key={d} value={d} />
+                  ))}
+                </datalist>
+              </label>
+
+              <label className="block">
+                <span className="sr-only">Month</span>
+                <select
+                  value={dobMonth}
+                  onChange={(e) => setDobMonth(e.target.value)}
+                  className={inputClass}
+                  style={inputStyle}
+                  aria-label="Month"
+                >
+                  <option value="">Month</option>
+                  {[
+                    'January',
+                    'February',
+                    'March',
+                    'April',
+                    'May',
+                    'June',
+                    'July',
+                    'August',
+                    'September',
+                    'October',
+                    'November',
+                    'December',
+                  ].map((label, i) => (
+                    <option key={label} value={String(i + 1)}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="block">
+                <span className="sr-only">Year</span>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min={1900}
+                  max={new Date().getFullYear() - 16}
+                  step={1}
+                  placeholder="YYYY"
+                  list="dob-years"
+                  value={dobYear}
+                  onChange={(e) => setDobYear(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  className={inputClass}
+                  style={inputStyle}
+                  aria-label="Year"
+                />
+                <datalist id="dob-years">
+                  {Array.from(
+                    { length: new Date().getFullYear() - 16 - 1900 + 1 },
+                    (_, i) => new Date().getFullYear() - 16 - i,
+                  ).map((y) => (
+                    <option key={y} value={y} />
+                  ))}
+                </datalist>
+              </label>
+            </div>
+          </fieldset>
         </div>
       </Card>
 

@@ -2,7 +2,7 @@
 // Per /docs/ai-spec.md §11: any blocking-dimension failure → reject.
 
 import { generateText } from 'ai';
-import { anthropic, MODELS } from './client';
+import { google, MODELS } from './client';
 import { OUTPUT_FILTER_JUDGE_SYSTEM, PROMPT_IDS } from './prompts';
 import {
   OutputFilterVerdictSchema,
@@ -53,7 +53,7 @@ export async function runOutputFilter(report: Report): Promise<OutputFilterResul
 
   const start = Date.now();
   const raw = await generateText({
-    model: anthropic()(MODELS.filter),
+    model: google()(MODELS.filter),
     system: OUTPUT_FILTER_JUDGE_SYSTEM,
     temperature: 0,
     maxTokens: 600,
