@@ -18,16 +18,15 @@ function clerkConfigured(): boolean {
   return key.length > 30;
 }
 
-const isProtectedRoute = createRouteMatcher([
-  '/dashboard(.*)',
-  '/account(.*)',
-  '/api/dashboard(.*)',
-]);
-
-const clerkHandler = clerkMiddleware(async (auth, req) => {
-  if (isProtectedRoute(req)) {
-    await auth.protect();
-  }
+// Note on protection model: we do NOT call auth.protect() here. The dashboard
+// page handles its own redirect via `auth()` + `redirect('/sign-in')` in a
+// server component. Calling auth.protect() in middleware was producing 404s
+// instead of 307 redirects on dashboard requests, which is a Clerk
+// behaviour that activates when middleware can't resolve a sign-in URL.
+// Page-level redirect is more reliable and gives us a clean 307.
+const clerkHandler = clerkMiddleware(async () => {
+  // No-op — Clerk still attaches auth context to the request so server
+  // components can call `auth()` / `currentUser()` reliably.
 });
 
 // When Clerk isn't configured (build-time before env wiring; preview without

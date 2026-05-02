@@ -13,6 +13,9 @@ import { db, schema } from '@/lib/db';
 import { getTradition } from '@/lib/ai/traditions';
 import type { SubStyleId } from '@/lib/validation/inputSchemas';
 
+// auth() reads from request headers — must NOT be statically prerendered.
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Your readings',
   robots: { index: false, follow: false },
