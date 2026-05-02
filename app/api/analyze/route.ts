@@ -32,7 +32,7 @@ export async function POST(req: Request) {
       {
         error: 'ai_unconfigured',
         detail:
-          'ANTHROPIC_API_KEY is not set. Live inference requires Anthropic credentials in .env.local.',
+          'No AI provider configured. Set at least one of GROQ_API_KEY, OPENROUTER_API_KEY, GOOGLE_GENERATIVE_AI_API_KEY, or ANTHROPIC_API_KEY in environment variables.',
       },
       { status: 503 },
     );
