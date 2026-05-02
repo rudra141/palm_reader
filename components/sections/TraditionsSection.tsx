@@ -6,7 +6,7 @@
 import Link from 'next/link';
 import { Container } from '@/components/ui/Container';
 import { Eyebrow } from '@/components/ui/Eyebrow';
-import { Card } from '@/components/ui/Card';
+import { GlowingEdgeCard } from '@/components/ui/GlowingEdgeCard';
 import { buttonStyles } from '@/components/ui/Button';
 
 interface SubStyleEntry {
@@ -104,56 +104,66 @@ export function TraditionsSection() {
 
         <div className="mt-[var(--space-8)] grid grid-cols-1 gap-[var(--space-6)] lg:grid-cols-2">
           {TRADITIONS.map((t) => (
-            <Card key={t.tradition} className="flex flex-col p-[var(--space-7)]">
-              <Eyebrow>{t.englishName}</Eyebrow>
-              <h3
-                className="mt-[var(--space-2)] font-[var(--font-display)] italic"
-                style={{ fontSize: 'clamp(1.5rem, 2.6vw, 2rem)' }}
+            <GlowingEdgeCard
+              key={t.tradition}
+              mode="dark"
+              className="h-full"
+              disableIntro={t.tradition === 'chinese'}
+            >
+              <div
+                className="flex h-full flex-col p-[var(--space-7)]"
+                style={{ color: 'var(--fg)' }}
               >
-                {t.nameNative}
-              </h3>
-              <p
-                className="mt-[var(--space-4)] text-base leading-[var(--leading-relaxed)]"
-                style={{ color: 'var(--color-ink-muted)' }}
-              >
-                {t.description}
-              </p>
+                <Eyebrow>{t.englishName}</Eyebrow>
+                <h3
+                  className="mt-[var(--space-2)] font-[var(--font-display)] italic"
+                  style={{ fontSize: 'clamp(1.5rem, 2.6vw, 2rem)' }}
+                >
+                  {t.nameNative}
+                </h3>
+                <p
+                  className="mt-[var(--space-4)] text-base leading-[var(--leading-relaxed)]"
+                  style={{ color: 'var(--color-ink-muted)' }}
+                >
+                  {t.description}
+                </p>
 
-              <ul className="mt-[var(--space-5)] flex flex-col gap-[var(--space-3)]">
-                {t.substyles.map((s) => (
-                  <li
-                    key={s.id}
-                    className="rounded-[var(--radius-md)] border-l-2 py-[var(--space-1)] pl-[var(--space-4)]"
-                    style={{ borderColor: 'var(--color-accent)' }}
-                  >
-                    <div
-                      className="text-sm font-[var(--font-body)] tracking-[var(--tracking-wide)] uppercase"
-                      style={{ color: 'var(--color-ink)' }}
+                <ul className="mt-[var(--space-5)] flex flex-col gap-[var(--space-3)]">
+                  {t.substyles.map((s) => (
+                    <li
+                      key={s.id}
+                      className="rounded-[var(--radius-md)] border-l-2 py-[var(--space-1)] pl-[var(--space-4)]"
+                      style={{ borderColor: 'var(--color-accent)' }}
                     >
-                      {s.label}
-                    </div>
-                    <div
-                      className="mt-[var(--space-1)] text-sm leading-[var(--leading-relaxed)]"
-                      style={{ color: 'var(--color-ink-muted)' }}
-                    >
-                      {s.blurb}
-                    </div>
-                  </li>
-                ))}
-              </ul>
+                      <div
+                        className="text-sm font-[var(--font-body)] tracking-[var(--tracking-wide)] uppercase"
+                        style={{ color: 'var(--color-ink)' }}
+                      >
+                        {s.label}
+                      </div>
+                      <div
+                        className="mt-[var(--space-1)] text-sm leading-[var(--leading-relaxed)]"
+                        style={{ color: 'var(--color-ink-muted)' }}
+                      >
+                        {s.blurb}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
 
-              <div className="mt-[var(--space-6)] flex-1" aria-hidden />
-              <Link
-                href={{ pathname: '/upload', query: { tradition: t.tradition } }}
-                className={buttonStyles({
-                  variant: 'primary',
-                  size: 'md',
-                  className: 'self-start',
-                })}
-              >
-                {t.cta}
-              </Link>
-            </Card>
+                <div className="mt-[var(--space-6)] flex-1" aria-hidden />
+                <Link
+                  href={{ pathname: '/upload', query: { tradition: t.tradition } }}
+                  className={buttonStyles({
+                    variant: 'primary',
+                    size: 'md',
+                    className: 'self-start',
+                  })}
+                >
+                  {t.cta}
+                </Link>
+              </div>
+            </GlowingEdgeCard>
           ))}
         </div>
       </Container>
