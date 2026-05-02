@@ -30,7 +30,9 @@ export interface LandmarksResult {
 }
 
 const MODEL_PATH = '/models/hand_landmarker.task';
-const WASM_PATH = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm';
+// Self-hosted under /public/mediapipe/wasm — avoids CDN flakiness + Safari
+// blocks. Files copied from node_modules/@mediapipe/tasks-vision/wasm/.
+const WASM_PATH = '/mediapipe/wasm';
 
 const cache = new Map<string, LandmarksResult>();
 let pendingLandmarker: Promise<unknown> | null = null;
@@ -62,7 +64,9 @@ async function loadLandmarker(): Promise<unknown> {
     const tasks = await import('@mediapipe/tasks-vision');
     const fileset = await tasks.FilesetResolver.forVisionTasks(WASM_PATH);
     return tasks.HandLandmarker.createFromOptions(fileset, {
-      baseOptions: { modelAssetPath: MODEL_PATH, delegate: 'GPU' },
+      // CPU delegate is slower (~1s vs ~200ms) but materially more reliable
+      // across Safari/WebKit, where GPU delegate often hangs or fails.
+      baseOptions: { modelAssetPath: MODEL_PATH, delegate: 'CPU' },
       runningMode: 'IMAGE',
       numHands: 1,
     });
@@ -71,13 +75,20 @@ async function loadLandmarker(): Promise<unknown> {
 }
 
 function loadImageAsElement(url: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error('image_load_failed'));
-    img.src = url;
-  });
+  // Try with crossOrigin first (required for canvas read-back); if the
+  // origin doesn't return Access-Control-Allow-Origin headers, retry
+  // without — MediaPipe still detects landmarks even on a "tainted" image
+  // when we're not reading pixels back out of a canvas.
+  const tryLoad = (withCors: boolean): Promise<HTMLImageElement> =>
+    new Promise((resolve, reject) => {
+      const img = new Image();
+      if (withCors) img.crossOrigin = 'anonymous';
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('image_load_failed'));
+      img.src = url;
+    });
+
+  return tryLoad(true).catch(() => tryLoad(false));
 }
 
 interface DetectableLandmarker {
@@ -115,16 +126,19 @@ export function useHandLandmarks(imageUrl: string | null): LandmarksResult {
 
     const cancelIdle = deferIdle(async () => {
       try {
+        console.info('[useHandLandmarks] loading model + image', imageUrl);
         const [landmarker, image] = await Promise.all([
           loadLandmarker() as Promise<DetectableLandmarker>,
           loadImageAsElement(imageUrl),
         ]);
         if (cancelled) return;
+        console.info('[useHandLandmarks] model + image loaded; running detect');
         setResult((prev) => ({ ...prev, status: 'detecting' }));
         const detection = landmarker.detect(image);
         if (cancelled) return;
 
         const first = detection.landmarks?.[0];
+        console.info('[useHandLandmarks] detection result — landmarks:', first?.length ?? 0);
         if (!first || first.length === 0) {
           const noHand: LandmarksResult = {
             status: 'no-hand',
@@ -156,6 +170,7 @@ export function useHandLandmarks(imageUrl: string | null): LandmarksResult {
         setResult(ready);
       } catch (err) {
         if (cancelled) return;
+        console.error('[useHandLandmarks] failed:', err);
         const failed: LandmarksResult = {
           status: 'failed',
           keypoints: null,

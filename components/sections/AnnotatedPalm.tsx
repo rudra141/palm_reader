@@ -90,7 +90,7 @@ export function AnnotatedPalm({ report, imageUrl, anchors, tradition, onSelectFe
   }, [anchors, cited]);
 
   return (
-    <section className="py-[var(--space-8)]">
+    <section className="pt-[var(--space-4)] pb-[var(--space-7)]">
       <Container size="md">
         <header className="mx-auto max-w-[44ch] text-center">
           <Eyebrow>Your hand</Eyebrow>
@@ -122,9 +122,8 @@ export function AnnotatedPalm({ report, imageUrl, anchors, tradition, onSelectFe
             fill
             sizes="(max-width: 768px) 100vw, 44rem"
             unoptimized
-            className="object-contain"
+            className="object-contain motion-safe:[animation:kenburns_22s_ease-in-out_infinite_alternate]"
             priority
-            // CSS warm-tone tint for premium feel without altering source image.
             style={{ filter: 'sepia(0.18) contrast(1.04) saturate(0.95)' }}
           />
 
@@ -173,14 +172,14 @@ export function AnnotatedPalm({ report, imageUrl, anchors, tradition, onSelectFe
           ) : null}
         </figure>
 
-        {anchors === null ? (
-          <p
-            className="mt-[var(--space-4)] text-center text-xs"
-            style={{ color: 'var(--color-ink-faint)' }}
-          >
-            Hand landmarks unavailable — scroll to read.
-          </p>
-        ) : null}
+        <p
+          className="mt-[var(--space-4)] text-center text-xs"
+          style={{ color: 'var(--color-ink-faint)' }}
+        >
+          {anchors === null
+            ? 'Locating palm landmarks…'
+            : `${Object.keys(anchors.mounts).length} mounts and 3 line zones detected.`}
+        </p>
       </Container>
     </section>
   );

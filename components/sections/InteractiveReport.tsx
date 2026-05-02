@@ -15,6 +15,7 @@ import { Container } from '@/components/ui/Container';
 import { ReportHeader } from '@/components/sections/ReportHeader';
 import { ReportActions } from '@/components/sections/ReportActions';
 import { ReportDisclaimers } from '@/components/sections/ReportDisclaimers';
+import { ChatPanel } from '@/components/sections/ChatPanel';
 import { AnnotatedPalm } from '@/components/sections/AnnotatedPalm';
 import { ReportChapters } from '@/components/sections/ReportChapters';
 import { TraditionAmbient } from '@/components/sections/TraditionAmbient';
@@ -60,7 +61,7 @@ function InteractiveReportInner({ report, clientName, readingId, imageUrl, ancho
     <main className="relative">
       <TraditionAmbient tradition={tradition} />
 
-      <header className="py-[var(--space-9)]">
+      <header className="pt-[var(--space-7)] pb-[var(--space-5)]">
         <Container size="md">
           <ReportHeader report={report} clientName={clientName} />
         </Container>
@@ -75,6 +76,8 @@ function InteractiveReportInner({ report, clientName, readingId, imageUrl, ancho
       />
 
       <ReportChapters report={report} />
+
+      <ChatPanel readingId={readingId} />
 
       <footer className="py-[var(--space-9)]">
         <Container size="md">

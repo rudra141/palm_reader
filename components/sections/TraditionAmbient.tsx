@@ -46,14 +46,14 @@ export function TraditionAmbient({ tradition }: Props) {
   return (
     <div
       aria-hidden
-      className="pointer-events-none sticky top-0 -z-10 h-[100svh] w-full overflow-hidden"
-      style={{ opacity: 0.12 }}
+      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
+      style={{ opacity: 0.18 }}
     >
       <svg
         ref={ref}
         viewBox="-100 -100 200 200"
         preserveAspectRatio="xMidYMid meet"
-        className="absolute top-1/2 left-1/2 h-[140vmin] w-[140vmin] -translate-x-1/2 -translate-y-1/2"
+        className="absolute top-1/2 left-1/2 h-[120vmin] w-[120vmin] -translate-x-1/2 -translate-y-1/2"
         style={{ transformOrigin: 'center center', willChange: 'transform' }}
       >
         {tradition === 'indian' ? <IndianGeometry /> : <ChineseGeometry />}

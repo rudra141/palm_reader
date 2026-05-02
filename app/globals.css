@@ -204,3 +204,15 @@ body {
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }
+
+/* Slow Ken Burns zoom + drift on the palm hero photo. Subtle but signals
+   the page is alive. Disabled under prefers-reduced-motion via Tailwind
+   `motion-safe:` class on the image. */
+@keyframes kenburns {
+  0% {
+    transform: scale(1) translate(0%, 0%);
+  }
+  100% {
+    transform: scale(1.06) translate(-1.2%, -0.6%);
+  }
+}

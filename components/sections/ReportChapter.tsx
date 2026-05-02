@@ -45,24 +45,25 @@ export function ReportChapter({
       const ctx = gsap.context(() => {
         gsap.from('[data-chapter-fx="head"]', {
           opacity: 0,
-          y: 24,
-          duration: 0.9,
-          ease: 'power2.out',
+          y: 48,
+          duration: 1.1,
+          ease: 'power3.out',
           scrollTrigger: {
             trigger: root.current,
-            start: 'top 78%',
+            start: 'top 85%',
             toggleActions: 'play none none reverse',
           },
         });
         gsap.from('[data-chapter-fx="body"]', {
           opacity: 0,
-          y: 18,
-          duration: 0.9,
-          delay: 0.15,
-          ease: 'power2.out',
+          y: 32,
+          duration: 1.1,
+          delay: 0.18,
+          ease: 'power3.out',
+          stagger: 0.08,
           scrollTrigger: {
             trigger: root.current,
-            start: 'top 70%',
+            start: 'top 82%',
             toggleActions: 'play none none reverse',
           },
         });
@@ -70,13 +71,13 @@ export function ReportChapter({
         if (tail) {
           gsap.from(tail, {
             opacity: 0,
-            y: 14,
-            duration: 0.9,
-            delay: 0.3,
-            ease: 'power2.out',
+            y: 24,
+            duration: 1.1,
+            delay: 0.34,
+            ease: 'power3.out',
             scrollTrigger: {
               trigger: root.current,
-              start: 'top 65%',
+              start: 'top 78%',
               toggleActions: 'play none none reverse',
             },
           });
@@ -92,7 +93,7 @@ export function ReportChapter({
       id={id}
       ref={root}
       data-report-chapter
-      className="relative flex min-h-[100svh] items-center py-[var(--space-9)]"
+      className="relative scroll-mt-[var(--space-7)] py-[var(--space-8)]"
     >
       <Container size="md">
         <div data-chapter-fx="head" className="max-w-[64ch]">
