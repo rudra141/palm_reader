@@ -7,6 +7,7 @@ import { ReportHeader } from '@/components/sections/ReportHeader';
 import { ReportSection } from '@/components/sections/ReportSection';
 import { ReportDisclaimers } from '@/components/sections/ReportDisclaimers';
 import { ReportActions } from '@/components/sections/ReportActions';
+import { ChatPanel } from '@/components/sections/ChatPanel';
 import type { Report } from '@/lib/validation/reportSchema';
 
 export interface StaticReportProps {
@@ -105,6 +106,8 @@ export function StaticReport({ report, clientName, readingId }: StaticReportProp
         />
 
         <ReportActions readingId={readingId} />
+
+        <ChatPanel readingId={readingId} />
 
         <ReportDisclaimers report={report} />
       </Container>

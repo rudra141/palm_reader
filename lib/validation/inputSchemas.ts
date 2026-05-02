@@ -62,3 +62,16 @@ export const AnalyzeRequestSchema = z.object({
 
 export type AnalyzeRequest = z.infer<typeof AnalyzeRequestSchema>;
 export type ClientContext = z.infer<typeof ClientContextSchema>;
+
+/** Chat-companion request shape. Caller is the report page, which already
+ *  knows the readingId. Vercel AI SDK's `useChat` posts {messages: [...]}
+ *  by default — we accept that shape unchanged. */
+const ChatMessageSchema = z.object({
+  role: z.enum(['user', 'assistant']),
+  content: z.string().min(1).max(2000).transform(sanitize),
+});
+export const AskRequestSchema = z.object({
+  readingId: z.string().min(8),
+  messages: z.array(ChatMessageSchema).min(1).max(40),
+});
+export type AskRequest = z.infer<typeof AskRequestSchema>;

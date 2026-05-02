@@ -49,6 +49,18 @@ export const LIMIT_ANALYZE_PER_USER_DAY: LimitConfig = {
   requests: 5,
   window: '1 d',
 };
+/** Chat companion follow-ups — bounded so a single bad-actor session can't
+ *  exhaust the model provider's quota for the rest of the user base. */
+export const LIMIT_CHAT_PER_IP_HOUR: LimitConfig = {
+  prefix: 'rl:chat:ip:hour',
+  requests: 20,
+  window: '1 h',
+};
+export const LIMIT_CHAT_PER_IP_DAY: LimitConfig = {
+  prefix: 'rl:chat:ip:day',
+  requests: 80,
+  window: '1 d',
+};
 
 /**
  * Check a rate limit. Without Upstash creds the limiter is bypassed (returns
