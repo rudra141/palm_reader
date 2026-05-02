@@ -63,15 +63,32 @@ export const AnalyzeRequestSchema = z.object({
 export type AnalyzeRequest = z.infer<typeof AnalyzeRequestSchema>;
 export type ClientContext = z.infer<typeof ClientContextSchema>;
 
-/** Chat-companion request shape. Caller is the report page, which already
- *  knows the readingId. Vercel AI SDK's `useChat` posts {messages: [...]}
- *  by default — we accept that shape unchanged. */
+/** Chat-companion request shape. Two modes:
+ *   - "report" mode: caller is the report page; just sends `readingId` and
+ *     we look up the persisted vision + report from the DB.
+ *   - "direct" mode: caller is the /ask quick-consultation surface; there's
+ *     no DB row yet (and might never be), so the caller sends vision +
+ *     tradition + clientContext inline with each request. */
 const ChatMessageSchema = z.object({
   role: z.enum(['user', 'assistant']),
-  content: z.string().min(1).max(2000).transform(sanitize),
+  content: z.string().min(1).max(4000).transform(sanitize),
 });
-export const AskRequestSchema = z.object({
-  readingId: z.string().min(8),
-  messages: z.array(ChatMessageSchema).min(1).max(40),
+
+const DirectContextSchema = z.object({
+  visionDescription: z.string().min(20).max(8000),
+  tradition: z.enum(['indian', 'chinese']),
+  subStyle: z.enum(SUB_STYLE_IDS),
+  clientContext: ClientContextSchema,
 });
+
+export const AskRequestSchema = z
+  .object({
+    readingId: z.string().min(8).optional(),
+    direct: DirectContextSchema.optional(),
+    messages: z.array(ChatMessageSchema).min(1).max(40),
+  })
+  .refine(
+    (v) => Boolean(v.readingId) !== Boolean(v.direct),
+    'Provide exactly one of readingId or direct',
+  );
 export type AskRequest = z.infer<typeof AskRequestSchema>;
