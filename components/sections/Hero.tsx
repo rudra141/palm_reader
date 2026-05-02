@@ -106,16 +106,15 @@ export function Hero() {
                   A reading from the original texts.
                 </h1>
 
-                {/* Sub — 42ch reading rhythm; cream-muted so the H1 stays the focal note */}
+                {/* Sub — single restrained line. */}
                 <p
-                  className="text-md mt-[var(--space-5)] max-w-[42ch] leading-[var(--leading-relaxed)]"
+                  className="text-md mt-[var(--space-5)] max-w-[36ch] leading-[var(--leading-relaxed)]"
                   style={{
                     color: 'rgb(238 230 217)',
                     textShadow: '0 1px 12px rgba(18,16,14,0.55)',
                   }}
                 >
-                  Indian and Chinese palmistry, read by an AI grounded in the classical sources —
-                  not the pop-culture residue.
+                  Indian and Chinese palmistry, grounded in the classical sources.
                 </p>
 
                 {/* CTA cluster — primary pill + secondary text link */}
