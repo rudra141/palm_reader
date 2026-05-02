@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Cormorant_Garamond, Inter } from 'next/font/google';
+import { ClerkProvider } from '@clerk/nextjs';
+import { SiteHeader } from '@/components/sections/SiteHeader';
 import './globals.css';
 
 const cormorant = Cormorant_Garamond({
@@ -43,10 +45,55 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+// Brand-tuned Clerk appearance. Pulls from our locked design tokens so the
+// hosted sign-in / sign-up flow matches Aesop/Hermès restraint instead of
+// Clerk's default purple. Light theme by default; dark surfaces honored
+// where present.
+const clerkAppearance = {
+  variables: {
+    colorPrimary: '#a77c36',
+    colorBackground: '#faf8f4',
+    colorInputBackground: '#fcfaf6',
+    colorInputText: '#1c1816',
+    colorText: '#1c1816',
+    colorTextSecondary: '#4e4640',
+    fontFamily: 'var(--font-body-loaded), system-ui, sans-serif',
+    fontFamilyButtons: 'var(--font-body-loaded), system-ui, sans-serif',
+    borderRadius: '0.5rem',
+  },
+  elements: {
+    formButtonPrimary:
+      'bg-[var(--color-ink)] hover:bg-[var(--color-accent-deep)] text-[var(--color-ink-on-accent)] tracking-[var(--tracking-wide)]',
+    card: 'shadow-none border border-[var(--color-border)] bg-[var(--color-surface-raised)]',
+    headerTitle: 'font-[var(--font-display)]',
+    socialButtonsBlockButton: 'border border-[var(--color-border)]',
+  },
+};
+
+// Detect a real Clerk key so the build doesn't fail when only the
+// `.env.example` placeholder is present. Pattern: real Clerk publishable
+// keys start with `pk_test_` or `pk_live_` and are >= 40 chars; the
+// placeholder is `pk_test_xxxxxxxxxxxxxxxx`.
+function clerkConfigured(): boolean {
+  const key = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+  if (!key) return false;
+  if (/^pk_(test|live)_x+$/i.test(key)) return false;
+  return key.length > 30;
+}
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
+  const tree = (
     <html lang="en" className={`${cormorant.variable} ${inter.variable}`}>
-      <body>{children}</body>
+      <body>
+        <SiteHeader />
+        {children}
+      </body>
     </html>
+  );
+
+  return clerkConfigured() ? (
+    <ClerkProvider appearance={clerkAppearance}>{tree}</ClerkProvider>
+  ) : (
+    tree
   );
 }

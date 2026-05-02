@@ -9,6 +9,7 @@
 
 import { NextResponse } from 'next/server';
 import { eq } from 'drizzle-orm';
+import { auth, currentUser } from '@clerk/nextjs/server';
 import { AnalyzeRequestSchema } from '@/lib/validation/inputSchemas';
 import { runInference } from '@/lib/ai/runInference';
 import { hasLiveAi } from '@/lib/ai/client';
@@ -19,6 +20,7 @@ import {
 } from '@/lib/rate-limit';
 import { checkBudget, recordSpend } from '@/lib/ai/costTracker';
 import { hashIp, getIpFromHeaders } from '@/lib/utils/ipHash';
+import { ensureUser } from '@/lib/auth/ensureUser';
 import { db, schema } from '@/lib/db';
 
 export const runtime = 'nodejs';
@@ -48,9 +50,24 @@ export async function POST(req: Request) {
   }
   const input = parsed.data;
 
+  // ── Auth (optional) ────────────────────────────────────────────────────
+  // Anonymous reads still flow; if the caller is signed in we link the
+  // resulting reading to their `users` row so it appears on /dashboard.
+  // auth() throws if Clerk isn't configured (no middleware wrapping) — in
+  // that case we just continue anonymous.
+  let clerkUserId: string | null = null;
+  try {
+    const a = await auth();
+    clerkUserId = a.userId ?? null;
+  } catch {
+    clerkUserId = null;
+  }
+
   // ── Rate limit + cost circuit breaker ──────────────────────────────────
   const ipHash = hashIp(getIpFromHeaders(req.headers));
-  const userKey = ipHash; // Phase 9 swaps this for `auth().userId ?? ipHash`.
+  // Authenticated users get their own per-user budget bucket; anonymous
+  // users share the per-IP bucket.
+  const userKey = clerkUserId ?? ipHash;
 
   const [hour, day, budget] = await Promise.all([
     checkRateLimit(LIMIT_ANALYZE_PER_IP_HOUR, ipHash),
@@ -102,11 +119,26 @@ export async function POST(req: Request) {
   }
 
   // ── Persist ─────────────────────────────────────────────────────────────
+  // If the caller is signed in, lazy-upsert the user row so we can FK the
+  // reading to it. Failures here don't block the reading — anonymous
+  // persistence is the safe fallback.
+  let internalUserId: string | null = null;
+  if (clerkUserId) {
+    try {
+      const u = await currentUser();
+      const email = u?.emailAddresses[0]?.emailAddress ?? null;
+      internalUserId = await ensureUser({ clerkUserId, email });
+    } catch (err) {
+      console.warn('[analyze] ensureUser failed; continuing anonymous:', (err as Error).message);
+    }
+  }
+
   let readingId: string;
   try {
     const inserted = await db()
       .insert(schema.readings)
       .values({
+        userId: internalUserId,
         ipHash,
         tradition: input.tradition,
         subStyle: input.subStyle,
