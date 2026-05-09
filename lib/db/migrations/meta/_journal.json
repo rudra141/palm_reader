@@ -8,6 +8,13 @@
       "when": 1777576589880,
       "tag": "0000_cultured_wildside",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1778320136938,
+      "tag": "0001_loud_genesis",
+      "breakpoints": true
     }
   ]
 }

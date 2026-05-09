@@ -21,6 +21,8 @@ import {
 import { checkBudget, recordSpend } from '@/lib/ai/costTracker';
 import { hashIp, getIpFromHeaders } from '@/lib/utils/ipHash';
 import { ensureUser } from '@/lib/auth/ensureUser';
+import { readAnonSessionId } from '@/lib/auth/anonSession';
+import { capture } from '@/lib/analytics/posthog';
 import { db, schema } from '@/lib/db';
 
 export const runtime = 'nodejs';
@@ -133,6 +135,10 @@ export async function POST(req: Request) {
     }
   }
 
+  // Read anon session id (set by /api/upload). Stored only when this reading
+  // is anonymous; once attached to a user the column is cleared during claim.
+  const anonSessionId = internalUserId ? null : await readAnonSessionId();
+
   let readingId: string;
   try {
     const inserted = await db()
@@ -140,6 +146,7 @@ export async function POST(req: Request) {
       .values({
         userId: internalUserId,
         ipHash,
+        anonSessionId,
         tradition: input.tradition,
         subStyle: input.subStyle,
         contextJson: input.clientContext as unknown as Record<string, unknown>,
@@ -176,6 +183,23 @@ export async function POST(req: Request) {
     });
 
   await recordSpend({ userKey, costUsd: result.meta.totalCostUsd });
+
+  // Funnel event: top of the report-conversion funnel. Distinct id is the
+  // anon session id when anonymous (so it stitches to the authed identity
+  // later via aliasAnon at claim time) or the internal user uuid when
+  // already signed in.
+  await capture({
+    distinctId: internalUserId ?? anonSessionId ?? ipHash,
+    event: 'upload_completed',
+    properties: {
+      reading_id: readingId,
+      tradition: input.tradition,
+      sub_style: input.subStyle,
+      anonymous: !internalUserId,
+      latency_ms: result.meta.totalLatencyMs,
+      cost_usd: result.meta.totalCostUsd,
+    },
+  });
 
   return NextResponse.json({
     readingId,

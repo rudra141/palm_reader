@@ -9,6 +9,8 @@ import { Container } from '@/components/ui/Container';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { buttonStyles } from '@/components/ui/Button';
 import { ensureUser } from '@/lib/auth/ensureUser';
+import { readAnonSessionId } from '@/lib/auth/anonSession';
+import { claimAnonReadings } from '@/lib/auth/claimAnonReadings';
 import { db, schema } from '@/lib/db';
 import { getTradition } from '@/lib/ai/traditions';
 import type { SubStyleId } from '@/lib/validation/inputSchemas';
@@ -45,6 +47,12 @@ async function loadDashboard(): Promise<DashboardReading[]> {
   const user = await currentUser();
   const email = user?.emailAddresses[0]?.emailAddress ?? null;
   const internalUserId = await ensureUser({ clerkUserId: userId, email });
+
+  // Claim any readings the user created while anonymous before signing in.
+  const anonSessionId = await readAnonSessionId();
+  if (anonSessionId) {
+    await claimAnonReadings({ internalUserId, anonSessionId });
+  }
 
   const rows = await db()
     .select({

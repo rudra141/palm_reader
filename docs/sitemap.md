@@ -8,10 +8,12 @@
 
 ```
 /                                  Landing — cinematic 3D scroll story + CTA
-/upload                            Multi-step upload + context entry
-/report/[id]                       Generated report (Server Component)
-/share/[token]                     Read-only shared report (noindex)
-/dashboard                         Saved-readings list (auth required)
+/upload                            Multi-step upload + context entry (anonymous OK)
+/report/[id]                       Generated report (Server Component) — auth required;
+                                     anonymous uploads are claimed on first sign-in via the
+                                     `palm_anon_session` cookie. Demo fixtures (sample-*) public.
+/share/[token]                     Read-only shared report (noindex; token-gated)
+/dashboard                         Saved-readings list (auth required; sweeps anon claims)
 
 /about                             Brand story, methodology overview
 /methodology                       Detailed traditions + sub-styles + grounding philosophy
@@ -49,7 +51,7 @@
 | ---------------- | ------------------------------------------------------------------ | ---------------- | -------------------- |
 | `/`              | "[Brand] — Authentic palm readings, drawn from the original texts" | yes              | hero hand still      |
 | `/upload`        | "Begin your reading — [Brand]"                                     | yes              | upload-themed        |
-| `/report/[id]`   | "Your reading — [Brand]"                                           | **no** (privacy) | brand default        |
+| `/report/[id]`   | "Your reading — [Brand]"                                           | **no** (auth + privacy) | brand default |
 | `/share/[token]` | "A reading from [Brand]"                                           | **no**           | per-share dynamic OG |
 | `/dashboard`     | "Your readings — [Brand]"                                          | **no** (auth)    | brand default        |
 | `/about`         | "About [Brand]"                                                    | yes              | brand portrait       |
@@ -84,12 +86,12 @@
 
 ## Routing notes
 
-- `/upload` is a multi-step **client component** (state per step, but each step is a small RSC island where possible)
-- `/report/[id]` is a **Server Component** that fetches from DB; client islands for share/PDF actions only
-- `/share/[token]` validates the token server-side, then renders read-only RSC
-- `/dashboard` is RSC fetching the authed user's readings
-- `/api/analyze` runs in Node runtime (sharp + AI SDK); `/api/upload` in Node runtime (sharp)
-- `/api/report/[id]` runs at the edge (read-only DB fetch)
+- `/upload` is a multi-step **client component** (state per step, but each step is a small RSC island where possible). Anonymous uploads allowed; `/api/upload` mints a `palm_anon_session` cookie that follows the reading row to claim time.
+- `/report/[id]` is a **Server Component** that fetches from DB. Auth required for real readings (Clerk); demo fixtures (`sample-indian`, `sample-chinese`) stay public. Ownership = `userId` match OR `anon_session_id` cookie match (claim-then-render).
+- `/api/report/[id]` mirrors the page's auth gate (401 if unsigned, 404 if not yours).
+- `/share/[token]` validates the token server-side, then renders read-only RSC (the *only* way to share a reading externally).
+- `/dashboard` is RSC fetching the authed user's readings; on first authed view it claims any pending anon-session readings and clears the cookie's claim window for that user.
+- `/api/analyze` runs in Node runtime (sharp + AI SDK); `/api/upload` in Node runtime (sharp).
 
 ## Robots / sitemap
 

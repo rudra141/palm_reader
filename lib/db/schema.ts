@@ -45,6 +45,7 @@ export const readings = pgTable(
     id: uuid('id').primaryKey().defaultRandom(),
     userId: uuid('user_id').references(() => users.id, { onDelete: 'set null' }),
     ipHash: text('ip_hash'), // anonymous rate-limiting key
+    anonSessionId: text('anon_session_id'), // cookie value for claim-on-signup
     tradition: traditionEnum('tradition').notNull(),
     subStyle: text('sub_style').notNull(),
     contextJson: jsonb('context_json').$type<Record<string, unknown>>(),
@@ -63,6 +64,7 @@ export const readings = pgTable(
     userIdx: index('readings_user_idx').on(t.userId),
     traditionIdx: index('readings_tradition_idx').on(t.tradition, t.subStyle),
     blobDeleteIdx: index('readings_blob_delete_idx').on(t.blobDeleteAfter),
+    anonSessionIdx: index('readings_anon_session_idx').on(t.anonSessionId),
   }),
 );
 

@@ -11,6 +11,11 @@ import {
   LIMIT_UPLOAD_PER_IP_HOUR,
   LIMIT_UPLOAD_PER_IP_DAY,
 } from '@/lib/rate-limit';
+import {
+  newAnonSessionId,
+  readAnonSessionId,
+  setAnonSessionCookie,
+} from '@/lib/auth/anonSession';
 
 export const runtime = 'nodejs'; // sharp needs Node, not edge
 
@@ -116,7 +121,11 @@ export async function POST(req: Request) {
     addRandomSuffix: true,
   });
 
-  return NextResponse.json({
+  // Ensure an anon session id is set so /api/analyze can stamp the reading
+  // and /report/[id] can claim it on signup. Reuse existing cookie if present.
+  const anonSessionId = (await readAnonSessionId()) ?? newAnonSessionId();
+
+  const response = NextResponse.json({
     imageId,
     blobUrl: blob.url,
     width,
@@ -124,4 +133,6 @@ export async function POST(req: Request) {
     bytes: normalized.byteLength,
     expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
   });
+  setAnonSessionCookie(response, anonSessionId);
+  return response;
 }
