@@ -112,13 +112,16 @@ export function openrouter() {
   return _openrouter;
 }
 
+/**
+ * True only when the reading pipeline can actually run end to end. Vision
+ * has no working Groq model any more (see MODELS.vision) — Gemini is the
+ * only vision provider in INFERENCE_CHAIN — so GOOGLE_GENERATIVE_AI_API_KEY
+ * is required regardless of what other provider keys are set. Checking
+ * "any key present" here let deploys with only GROQ_API_KEY pass this gate,
+ * burn a rate-limit/budget hit, and fail deep inside the vision call instead.
+ */
 export function hasLiveAi(): boolean {
-  return Boolean(
-    process.env.GROQ_API_KEY ||
-    process.env.OPENROUTER_API_KEY ||
-    process.env.GOOGLE_GENERATIVE_AI_API_KEY ||
-    process.env.ANTHROPIC_API_KEY,
-  );
+  return Boolean(process.env.GOOGLE_GENERATIVE_AI_API_KEY);
 }
 
 export interface ChatProviderChoice {
