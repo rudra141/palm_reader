@@ -46,10 +46,16 @@ export async function checkBudget(args: {
   }
   const userDay = `cost:user:${args.userKey}:${dayKey()}`;
   const sysMonth = `cost:sys:${monthKey()}`;
-  const [userSpend, sysSpend] = await Promise.all([
-    r.get<number>(userDay),
-    r.get<number>(sysMonth),
-  ]);
+  let userSpend: number | null;
+  let sysSpend: number | null;
+  try {
+    [userSpend, sysSpend] = await Promise.all([r.get<number>(userDay), r.get<number>(sysMonth)]);
+  } catch (err) {
+    // Redis unreachable/misconfigured (e.g. stale UPSTASH_REDIS_REST_URL) must
+    // never take down the whole reading — fail open like checkRateLimit does.
+    console.warn('[cost-tracker] checkBudget: Redis unavailable, failing open', err);
+    return { ok: true, currentSpendUsd: 0 };
+  }
   if ((userSpend ?? 0) >= PER_USER_DAILY_CAP_USD) {
     return {
       ok: false,
@@ -73,13 +79,19 @@ export async function recordSpend(args: { userKey: string; costUsd: number }): P
   if (!r) return;
   const userDay = `cost:user:${args.userKey}:${dayKey()}`;
   const sysMonth = `cost:sys:${monthKey()}`;
-  // Upstash incrbyfloat works for fractional dollar amounts.
-  await Promise.all([
-    r.incrbyfloat(userDay, args.costUsd),
-    r.expire(userDay, 60 * 60 * 24 * 2),
-    r.incrbyfloat(sysMonth, args.costUsd),
-    r.expire(sysMonth, 60 * 60 * 24 * 35),
-  ]);
+  try {
+    // Upstash incrbyfloat works for fractional dollar amounts.
+    await Promise.all([
+      r.incrbyfloat(userDay, args.costUsd),
+      r.expire(userDay, 60 * 60 * 24 * 2),
+      r.incrbyfloat(sysMonth, args.costUsd),
+      r.expire(sysMonth, 60 * 60 * 24 * 35),
+    ]);
+  } catch (err) {
+    // A completed reading must still be returned to the user even if spend
+    // bookkeeping fails — log and move on rather than throwing post-hoc.
+    console.warn('[cost-tracker] recordSpend: Redis unavailable, spend not recorded', err);
+  }
 }
 
 /** Per-token costs (USD per 1M tokens). Mirrors /docs/trd.md §3 model table. */

@@ -1,8 +1,8 @@
 // Inference orchestrator (RAG + 2-call mode).
 //
-// Pipeline:
-//   A. visionPass    — Llama 4 Scout (multimodal) → VisionObservation JSON
-//   B. reasoningPass — Llama 3.3 70B Versatile (text, RAG-augmented) → Report
+// Pipeline (each pass runs an all-free provider fallback chain — see client.ts):
+//   A. visionPass    — Groq Llama 4 Scout → Gemini Flash → VisionObservation JSON
+//   B. reasoningPass — Gemini 2.5 Flash → 2.0 Flash → Groq GPT OSS → Llama (RAG) → Report
 //   C. regex-only filter — regexScanReport. No LLM judge call (saves quota).
 //
 // Persistence + cost recording is the route's job.

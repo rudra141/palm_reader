@@ -3,8 +3,8 @@
 // reliably comply: either {valid:false, reason} or {valid:true, description}.
 // The reasoning pass interprets the description text with the full RAG context.
 
-import { generateObject } from 'ai';
-import { groq, MODELS } from './client';
+import { inferenceProviders } from './client';
+import { generateObjectWithFallback } from './fallback';
 import { PROMPT_IDS } from './prompts';
 import { SimpleVisionSchema, type SimpleVisionResult } from '@/lib/validation/visionSchema';
 import { estimateCostUsd } from './costTracker';
@@ -51,12 +51,15 @@ function imageBuffer(bytes: ArrayBuffer | Uint8Array): Uint8Array {
 
 export async function runVisionPass(input: VisionPassInput): Promise<VisionPassResult> {
   const start = Date.now();
-  const result = await generateObject({
-    model: groq()(MODELS.vision),
+  const result = await generateObjectWithFallback({
+    attempts: inferenceProviders('vision'),
     schema: SimpleVisionSchema,
     system: VISION_SYSTEM,
     temperature: 0,
     maxTokens: 1200,
+    // Gemini-only (used if it falls back off Groq): disable thinking so the
+    // small token budget isn't starved. Ignored by Groq.
+    providerOptions: { google: { thinkingConfig: { thinkingBudget: 0 } } },
     messages: [
       {
         role: 'user',
@@ -75,17 +78,17 @@ export async function runVisionPass(input: VisionPassInput): Promise<VisionPassR
   const latencyMs = Date.now() - start;
   const observation = result.object;
 
-  const promptTokens = result.usage?.promptTokens ?? 0;
-  const completionTokens = result.usage?.completionTokens ?? 0;
+  const promptTokens = result.usage.promptTokens;
+  const completionTokens = result.usage.completionTokens;
   const costUsd = estimateCostUsd({
-    model: MODELS.vision,
+    model: result.modelName,
     inputTokens: promptTokens,
     outputTokens: completionTokens,
   });
 
   return {
     observation,
-    model: MODELS.vision,
+    model: result.modelName,
     promptVersion: PROMPT_IDS.vision_observe.version,
     costUsd,
     latencyMs,

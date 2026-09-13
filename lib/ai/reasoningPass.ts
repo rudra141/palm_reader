@@ -1,9 +1,12 @@
-// Reasoning pass — Llama 3.3 70B Versatile (text) with `generateObject` so
-// the model is constrained to ReportSchema by the SDK's JSON-mode wiring.
+// Reasoning pass — writes the report prose, constrained to ReportSchema via
+// `generateObject`. Runs the all-free provider chain (Gemini 2.5 Flash → 2.0
+// Flash → Groq GPT OSS 120B → Groq Llama 3.3 70B); on rate-limit / availability
+// / generation errors it falls over to the next free model so a throttled tier
+// never breaks a reading.
 // Input: SimpleVisionResult.description (prose) + RAG-augmented system prompt.
 
-import { generateObject } from 'ai';
-import { groq, MODELS } from './client';
+import { inferenceProviders } from './client';
+import { generateObjectWithFallback } from './fallback';
 import { composeReportPrompts, PROMPT_IDS } from './prompts';
 import { getTradition } from './traditions';
 import { getResearchBlock } from './researchRag';
@@ -45,15 +48,20 @@ export async function runReasoningPass(input: ReasoningPassInput): Promise<Reaso
   });
 
   const start = Date.now();
-  const modelUsed: string = MODELS.reasoning;
 
-  const result = await generateObject({
-    model: groq()(MODELS.reasoning),
+  const result = await generateObjectWithFallback({
+    attempts: inferenceProviders('reasoning'),
     schema: ReportSchema,
     system,
     temperature: 0.4,
-    maxTokens: 4500,
+    // Headroom for the full 13-section report. Gemini 2.5 "thinking" tokens count
+    // against maxTokens and were truncating the JSON (finishReason: length), so we
+    // disable thinking below to give the whole budget to output.
+    maxTokens: 6000,
     messages: [{ role: 'user', content: user }],
+    // Gemini-only: turn off the thinking budget so structured output isn't
+    // starved. Ignored by Groq/other providers.
+    providerOptions: { google: { thinkingConfig: { thinkingBudget: 0 } } },
   });
 
   // Belt-and-braces: stamp the canonical disclaimer strings on top of whatever
@@ -64,19 +72,19 @@ export async function runReasoningPass(input: ReasoningPassInput): Promise<Reaso
 
   const latencyMs = Date.now() - start;
   const costUsd = estimateCostUsd({
-    model: modelUsed,
-    inputTokens: result.usage?.promptTokens ?? 0,
-    outputTokens: result.usage?.completionTokens ?? 0,
+    model: result.modelName,
+    inputTokens: result.usage.promptTokens,
+    outputTokens: result.usage.completionTokens,
   });
 
   return {
     report,
-    model: modelUsed,
+    model: result.modelName,
     promptVersion: PROMPT_IDS.report_render.version,
     costUsd,
     latencyMs,
-    retried: false,
-    fellBack: false,
+    retried: result.retried,
+    fellBack: result.fellBack,
   };
 }
 
