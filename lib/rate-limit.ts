@@ -86,10 +86,17 @@ export async function checkRateLimit(
     analytics: true,
     prefix: config.prefix,
   });
-  const result = await limiter.limit(identifier);
-  return {
-    success: result.success,
-    remaining: result.remaining,
-    reset: result.reset,
-  };
+  try {
+    const result = await limiter.limit(identifier);
+    return {
+      success: result.success,
+      remaining: result.remaining,
+      reset: result.reset,
+    };
+  } catch (err) {
+    // Redis unreachable/misconfigured must never take down the request —
+    // fail open (unmetered) rather than 500ing every upload/analyze call.
+    console.warn(`[rate-limit] ${config.prefix}: Redis unavailable, failing open`, err);
+    return { success: true, remaining: Infinity, reset: 0 };
+  }
 }
